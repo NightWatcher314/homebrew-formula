@@ -2,7 +2,7 @@ class ZoteroPdf2zh < Formula
   desc "Zotero PDF → ZH local server (uv-based)"
   homepage "https://github.com/NightWatcher314/zotero-pdf2zh-server"
   url "https://github.com/NightWatcher314/zotero-pdf2zh-server/archive/refs/tags/v3.0.33.tar.gz"
-  sha256 "9c7fee16a167b5a936fe30714520bf0e5fea98c78449396aee77844556dbe367"
+  sha256 "dc040d5744e8580894b5af0431998eb5b9567bd78b58a87f2af1eab176aa52ff"
 
   # For development/use without a release tarball, you can install from HEAD
   # after pushing this repo to a remote and using --HEAD.

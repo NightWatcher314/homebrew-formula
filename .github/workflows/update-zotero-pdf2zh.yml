@@ -1,4 +1,4 @@
-name: Update Formula
+name: Update zotero-pdf2zh
 
 on:
   workflow_dispatch:

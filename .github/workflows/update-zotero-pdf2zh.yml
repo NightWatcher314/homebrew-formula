@@ -21,7 +21,7 @@ jobs:
     - name: Get current version from formula
       id: current_version
       run: |
-        CURRENT_VERSION=$(grep -oP 'url.*releases/download/\K[^"]+' Formula/zotero-pdf2zh.rb | grep -oP 'v[0-9.]+')
+        CURRENT_VERSION=$(sed -n 's|.*releases/download/\(v[0-9][0-9.]*\)/.*|\1|p' Formula/zotero-pdf2zh.rb)
         echo "current_version=${CURRENT_VERSION}" >> $GITHUB_OUTPUT
 
     - name: Get latest release and update formula

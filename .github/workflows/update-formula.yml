@@ -2,56 +2,61 @@ name: Update Formula
 
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version to update to (e.g., v3.0.36)'
-        required: true
-        type: string
+  schedule:
+    - cron: '0 0 * * *'  # Run every day at midnight
+
+env:
+  UPSTREAM_REPO: guaguastandup/zotero-pdf2zh
 
 jobs:
   update:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Setup Ruby
-      uses: ruby/setup-ruby@v1
-      with:
-        ruby-version: '3.1'
-
-    - name: Get latest release info
-      id: release_info
+    - name: Get current version from formula
+      id: current_version
       run: |
-        VERSION=${{ inputs.version }}
-        URL="https://github.com/guaguastandup/zotero-pdf2zh/releases/download/${VERSION}/server.zip"
+        CURRENT_VERSION=$(grep -oP 'url.*releases/download/\K[^"]+' Formula/zotero-pdf2zh.rb | grep -oP 'v[0-9.]+')
+        echo "current_version=${CURRENT_VERSION}" >> $GITHUB_OUTPUT
+
+    - name: Get latest release and update formula
+      id: update_formula
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        LATEST_RELEASE_JSON=$(gh release list -R "${{ env.UPSTREAM_REPO }}" --json tagName,isPrerelease,url -L 10 | jq -r '[.[] | select(.isPrerelease == false)] | .[0]')
+        LATEST_VERSION=$(echo "$LATEST_RELEASE_JSON" | jq -r '.tagName')
+        echo "latest_version=${LATEST_VERSION}" >> $GITHUB_OUTPUT
+
+        if [ "${{ steps.current_version.outputs.current_version }}" = "$LATEST_VERSION" ]; then
+          echo "No update needed. Current: ${{ steps.current_version.outputs.current_version }}, Latest: $LATEST_VERSION"
+          echo "update_needed=false" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+
+        echo "Update needed. Current: ${{ steps.current_version.outputs.current_version }}, Latest: $LATEST_VERSION"
+        echo "update_needed=true" >> $GITHUB_OUTPUT
+
+        URL="https://github.com/${{ env.UPSTREAM_REPO }}/releases/download/${LATEST_VERSION}/server.zip"
         echo "url=${URL}" >> $GITHUB_OUTPUT
-        echo "version=${VERSION}" >> $GITHUB_OUTPUT
 
-    - name: Download and calculate SHA256
-      id: sha256
-      run: |
-        curl -L -o server.zip "${{ steps.release_info.outputs.url }}"
+        curl -L -o server.zip "$URL"
         SHA256=$(sha256sum server.zip | cut -d' ' -f1)
         echo "sha256=${SHA256}" >> $GITHUB_OUTPUT
 
-    - name: Update formula
+        sed -i "s|url \".*\"|url \"${URL}\"|" Formula/zotero-pdf2zh.rb
+        sed -i "s|sha256 \".*\"|sha256 \"${SHA256}\"|" Formula/zotero-pdf2zh.rb
+
+    - name: Commit and push changes
+      if: steps.update_formula.outputs.update_needed == 'true'
       run: |
-        sed -i "s|url \".*\"|url \"${{ steps.release_info.outputs.url }}\"|" Formula/zotero-pdf2zh.rb
-        sed -i "s|sha256 \".*\"|sha256 \"${{ steps.sha256.outputs.sha256 }}\"|" Formula/zotero-pdf2zh.rb
-
-    - name: Create Pull Request
-      uses: peter-evans/create-pull-request@v5
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        commit-message: "Update zotero-pdf2zh to ${{ inputs.version }}"
-        title: "Update zotero-pdf2zh to ${{ inputs.version }}"
-        body: |
-          This PR updates the zotero-pdf2zh formula to version ${{ inputs.version }}
-
-          Changes:
-          - Updated URL: ${{ steps.release_info.outputs.url }}
-          - Updated SHA256: ${{ steps.sha256.outputs.sha256 }}
-
-        branch: "update-zotero-pdf2zh-${{ inputs.version }}"
-        delete-branch: true
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git add Formula/zotero-pdf2zh.rb
+        git commit -m "Update zotero-pdf2zh to ${{ steps.update_formula.outputs.latest_version }}"
+        git push

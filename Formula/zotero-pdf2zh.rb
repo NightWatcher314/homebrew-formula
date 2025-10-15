@@ -35,7 +35,7 @@ class ZoteroPdf2zh < Formula
       cd "$ROOT"
       ln -snf "$DST_CFG" config
       ln -snf "$DATA/translated" translated
-      # Run the server with Python 3.12 and dependencies (pass through any extra args)
+      # Run the server with uv and dependencies (pass through any extra args)
       exec "#{Formula["uv"].opt_bin}/uv" "run" --python 3.12 --with flask --with toml --with pypdf --with argparse --with PyMuPDF --with packaging server.py --check_update false "$@"
         SH
     chmod 0755, bin/"zotero-pdf2zh"

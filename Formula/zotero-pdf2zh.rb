@@ -2,8 +2,8 @@ class ZoteroPdf2zh < Formula
 
   desc "Zotero PDF → ZH local server"
   homepage "https://github.com/guaguastandup/zotero-pdf2zh"
-  url "https://github.com/guaguastandup/zotero-pdf2zh/releases/download/v3.0.34/server.zip"
-  sha256 "45fd7e8580ef3dc6850e7b65ff98591c1ba75b0c88eb638f883eafc603cc19d"
+  url "https://github.com/guaguastandup/zotero-pdf2zh/releases/download/v3.0.35/server.zip"
+  sha256 "145fd7e8580ef3dc6850e7b65ff98591c1ba75b0c88eb638f883eafc603cc19d"
 
   depends_on "uv"
 

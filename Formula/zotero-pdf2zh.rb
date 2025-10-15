@@ -1,20 +1,17 @@
 class ZoteroPdf2zh < Formula
-  desc "Zotero PDF → ZH local server (uv-based)"
-  homepage "https://github.com/NightWatcher314/zotero-pdf2zh-server"
-  url "https://github.com/NightWatcher314/zotero-pdf2zh-server/archive/refs/tags/v3.0.33.tar.gz"
-  sha256 "dc040d5744e8580894b5af0431998eb5b9567bd78b58a87f2af1eab176aa52ff"
 
-  # For development/use without a release tarball, you can install from HEAD
-  # after pushing this repo to a remote and using --HEAD.
-  head "https://github.com/NightWatcher314/zotero-pdf2zh-server.git", branch: "main"
+  desc "Zotero PDF → ZH local server"
+  homepage "https://github.com/guaguastandup/zotero-pdf2zh"
+  url "https://github.com/guaguastandup/zotero-pdf2zh/releases/download/v3.0.35/server.zip"
+  sha256 "145fd7e8580ef3dc6850e7b65ff98591c1ba75b0c88eb638f883eafc603cc19d"
 
   depends_on "uv"
 
   def install
-    # Install the whole project into libexec so we can run it in-place with uv.
+    # Unzip the downloaded file and install the contents into libexec
     libexec.install Dir["*"]
 
-    # Wrapper: ensures writable config/data live under Homebrew var, then runs via uv.
+    # Wrapper: ensures writable config/data live under Homebrew var, then runs via venv.
     (bin/"zotero-pdf2zh").write <<~SH
       #!/usr/bin/env bash
       set -euo pipefail
@@ -30,7 +27,7 @@ class ZoteroPdf2zh < Formula
           [ -f "$f" ] || continue
           base="$(basename "$f")"
           if [ ! -f "$DST_CFG/$base" ]; then
-            cp "$f" "$DST_CFG/$base"
+        cp "$f" "$DST_CFG/$base"
           fi
         done
       fi
@@ -38,9 +35,9 @@ class ZoteroPdf2zh < Formula
       cd "$ROOT"
       ln -snf "$DST_CFG" config
       ln -snf "$DATA/translated" translated
-      # Run the server (pass through any extra args)
-      exec "#{Formula["uv"].opt_bin}/uv" run server.py "$@"
-    SH
+      # Run the server with Python 3.12 and dependencies (pass through any extra args)
+      exec "uv" "run" --python 3.12 --with flask --with toml --with pypdf --with argparse --with PyMuPDF --with packaging server.py --check_update false "$@"
+        SH
     chmod 0755, bin/"zotero-pdf2zh"
   end
 

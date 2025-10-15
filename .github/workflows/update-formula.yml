@@ -1,0 +1,57 @@
+name: Update Formula
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to update to (e.g., v3.0.36)'
+        required: true
+        type: string
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.1'
+
+    - name: Get latest release info
+      id: release_info
+      run: |
+        VERSION=${{ inputs.version }}
+        URL="https://github.com/guaguastandup/zotero-pdf2zh/releases/download/${VERSION}/server.zip"
+        echo "url=${URL}" >> $GITHUB_OUTPUT
+        echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+    - name: Download and calculate SHA256
+      id: sha256
+      run: |
+        curl -L -o server.zip "${{ steps.release_info.outputs.url }}"
+        SHA256=$(sha256sum server.zip | cut -d' ' -f1)
+        echo "sha256=${SHA256}" >> $GITHUB_OUTPUT
+
+    - name: Update formula
+      run: |
+        sed -i "s|url \".*\"|url \"${{ steps.release_info.outputs.url }}\"|" Formula/zotero-pdf2zh.rb
+        sed -i "s|sha256 \".*\"|sha256 \"${{ steps.sha256.outputs.sha256 }}\"|" Formula/zotero-pdf2zh.rb
+
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v5
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: "Update zotero-pdf2zh to ${{ inputs.version }}"
+        title: "Update zotero-pdf2zh to ${{ inputs.version }}"
+        body: |
+          This PR updates the zotero-pdf2zh formula to version ${{ inputs.version }}
+
+          Changes:
+          - Updated URL: ${{ steps.release_info.outputs.url }}
+          - Updated SHA256: ${{ steps.sha256.outputs.sha256 }}
+
+        branch: "update-zotero-pdf2zh-${{ inputs.version }}"
+        delete-branch: true

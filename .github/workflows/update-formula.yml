@@ -29,7 +29,14 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        LATEST_RELEASE_JSON=$(gh release list -R "${{ env.UPSTREAM_REPO }}" --json tagName,isPrerelease,url -L 10 | jq -r '[.[] | select(.isPrerelease == false)] | .[0]')
+        LATEST_RELEASE_JSON=$(gh release list -R "${{ env.UPSTREAM_REPO }}" --json tagName,isPrerelease,assets -L 10 | jq -r '[.[] | select(.isPrerelease == false and (.assets[] | .name == "server.zip"))] | .[0]')
+        
+        if [ -z "$LATEST_RELEASE_JSON" ] || [ "$LATEST_RELEASE_JSON" = "null" ]; then
+          echo "No new release with server.zip found."
+          echo "update_needed=false" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+
         LATEST_VERSION=$(echo "$LATEST_RELEASE_JSON" | jq -r '.tagName')
         echo "latest_version=${LATEST_VERSION}" >> $GITHUB_OUTPUT
 
@@ -42,7 +49,7 @@ jobs:
         echo "Update needed. Current: ${{ steps.current_version.outputs.current_version }}, Latest: $LATEST_VERSION"
         echo "update_needed=true" >> $GITHUB_OUTPUT
 
-        URL="https://github.com/${{ env.UPSTREAM_REPO }}/releases/download/${LATEST_VERSION}/server.zip"
+        URL=$(echo "$LATEST_RELEASE_JSON" | jq -r '.assets[] | select(.name == "server.zip") | .url')
         echo "url=${URL}" >> $GITHUB_OUTPUT
 
         curl -L -o server.zip "$URL"

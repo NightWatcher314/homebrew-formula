@@ -45,8 +45,6 @@ class ZoteroPdf2zh < Formula
     # Use the wrapper and default to the port used in run.sh
     run [opt_bin/"zotero-pdf2zh", "--port", "47700", "--check_update", "false"]
     keep_alive true
-    # Run from libexec so relative paths resolve consistently
-    working_dir opt_libexec
     log_path var/"log/zotero-pdf2zh.log"
     error_log_path var/"log/zotero-pdf2zh.log"
   end

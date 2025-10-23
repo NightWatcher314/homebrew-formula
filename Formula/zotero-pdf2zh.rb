@@ -11,6 +11,37 @@ class ZoteroPdf2zh < Formula
     # Unzip the downloaded file and install the contents into libexec
     libexec.install Dir["*"]
 
+    # Create virtual environments and install dependencies
+    cd libexec do
+      # Create zotero-pdf2zh-venv environment
+      ohai "Creating zotero-pdf2zh-venv environment..."
+      system Formula["uv"].opt_bin/"uv", "venv", "zotero-pdf2zh-venv", "--python=3.12"
+      
+      # Install dependencies for zotero-pdf2zh-venv
+      ohai "Installing dependencies for zotero-pdf2zh-venv..."
+      system "bash", "-c", <<~BASH
+        source zotero-pdf2zh-venv/bin/activate
+        #{Formula["uv"].opt_bin}/uv pip install pdf2zh==1.9.11 pypdf PyMuPDF flask numpy==2.2.0 toml pdfminer.six==20250416 packaging
+        deactivate
+      BASH
+
+      # Create zotero-pdf2zh-next-venv environment
+      ohai "Creating zotero-pdf2zh-next-venv environment..."
+      system Formula["uv"].opt_bin/"uv", "venv", "zotero-pdf2zh-next-venv", "--python=3.12"
+      
+      # Install dependencies for zotero-pdf2zh-next-venv
+      ohai "Installing dependencies for zotero-pdf2zh-next-venv..."
+      system "bash", "-c", <<~BASH
+        source zotero-pdf2zh-next-venv/bin/activate
+        #{Formula["uv"].opt_bin}/uv pip install pdf2zh_next pypdf PyMuPDF flask toml babeldoc packaging
+        deactivate
+      BASH
+
+      # Run babeldoc --warmup for zotero-pdf2zh-next-venv
+      ohai "Running babeldoc --warmup..."
+      system "zotero-pdf2zh-next-venv/bin/babeldoc", "--warmup"
+    end
+
     # Wrapper: ensures writable config/data live under Homebrew var, then runs via venv.
     (bin/"zotero-pdf2zh").write <<~SH
       #!/usr/bin/env bash

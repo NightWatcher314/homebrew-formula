@@ -11,11 +11,6 @@ class ZoteroPdf2zh < Formula
     # Unzip the downloaded file and install the contents into libexec
     libexec.install Dir["*"]
 
-    # Create virtual environments and install dependencies
-    cd libexec do
-      ohai "Running install-with-uv.sh to set up Python environments..."
-      system "bash", "-x", "install-with-uv.sh", "--warmup"
-    end
 
     (bin/"zotero-pdf2zh").write <<~SH
       #!/usr/bin/env bash
@@ -40,15 +35,16 @@ class ZoteroPdf2zh < Formula
       cd "$ROOT"
       ln -snf "$DST_CFG" config
       ln -snf "$DATA/translated" translated
+      
       # Run the server with uv and dependencies (pass through any extra args)
-      exec "#{Formula["uv"].opt_bin}/uv" "run" --python 3.12 --with flask --with toml --with pypdf --with argparse --with PyMuPDF --with packaging server.py --check_update false "$@"
+      exec "#{Formula["uv"].opt_bin}/uv" "run" --python 3.12 --with flask --with toml --with pypdf --with argparse --with PyMuPDF --with packaging --with pdf2zh_next server.py --check_update false "$@"
         SH
     chmod 0755, bin/"zotero-pdf2zh"
   end
 
   service do
     # Use the wrapper and default to the port used in run.sh
-    run [bin/"zotero-pdf2zh", "--port", "47700", "--check_update", "false"]
+    run ["/opt/homebrew/bin/zotero-pdf2zh", "--port", "47700", "--check_update", "false"]
     keep_alive true
     working_dir opt_libexec
     log_path var/"log/zotero-pdf2zh.log"

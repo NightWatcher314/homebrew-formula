@@ -6,7 +6,7 @@ class ZoteroPdf2zhNext < Formula
   sha256 "ab317f13f2d623814f0903621964e0699e24442041e141f441c7ff69721ae9bb"
   license "AGPL-3.0-or-later"
 
-  depends_on "python"
+  depends_on "python@3.13"
   depends_on "uv"
 
   def install
@@ -19,7 +19,7 @@ class ZoteroPdf2zhNext < Formula
       ROOT="#{opt_libexec}/server"
       DATA="#{var}/zotero-pdf2zh-next"
       CACHE="#{var}/cache/zotero-pdf2zh-next/uv"
-      PYTHON="#{Formula["python"].opt_bin}/python3"
+      PYTHON="#{Formula["python@3.13"].opt_bin}/python3.13"
 
       mkdir -p "$DATA" "$CACHE"
 

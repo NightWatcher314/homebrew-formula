@@ -3,6 +3,7 @@ class ZoteroPdf2zhNext < Formula
   homepage "https://github.com/NightWatcher314/zotero-pdf2zh-next"
   url "https://github.com/NightWatcher314/zotero-pdf2zh-next/archive/73f628b.tar.gz"
   version "5.0.0"
+  revision 1
   sha256 "f4b09b13746a2ba2a51be1fbeed78a19ab16f96defd0036cc8950fcb0279321d"
   license "AGPL-3.0-or-later"
 

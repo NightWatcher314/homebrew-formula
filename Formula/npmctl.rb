@@ -4,12 +4,16 @@ class Npmctl < Formula
   url "https://github.com/NightWatcher314/npmctl/archive/refs/tags/v0.2.0.tar.gz"
   sha256 "da16d390b1f9e0a0c4bf3844e68c075a9cf1f00eef097cf83325b347d934408b"
   license "MIT"
+  revision 1
 
   depends_on "python@3.13"
   depends_on "uv"
 
   def install
-    libexec.install Dir["*"]
+    prefix.install "README.md", "LICENSE"
+    libexec.install "pyproject.toml", "uv.lock", "src"
+    libexec.install_symlink prefix/"README.md"
+    libexec.install_symlink prefix/"LICENSE"
 
     (bin/"npmctl").write <<~SH
       #!/usr/bin/env bash

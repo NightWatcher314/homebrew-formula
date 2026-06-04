@@ -13,3 +13,4 @@ brew tap NightWatcher314/homebrew-formula
 - [dockgectl](https://github.com/NightWatcher314/dockgectl) — Dockge Socket.IO 自动化 CLI（基于 uv）
 - [npmctl](https://github.com/NightWatcher314/npmctl) — Nginx Proxy Manager API 自动化 CLI（基于 uv）
 - [zotero-pdf2zh](https://github.com/NightWatcher314/zotero-pdf2zh-server) — Zotero PDF → ZH 本地服务器（基于 uv）
+- [verible](https://github.com/chipsalliance/verible) — SystemVerilog formatter/linter/language server（二进制包，支持 Linux x86_64/arm64 与 macOS arm64）

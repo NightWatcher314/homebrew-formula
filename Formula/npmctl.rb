@@ -6,7 +6,7 @@ class Npmctl < Formula
   license "MIT"
 
   depends_on "python@3.13"
-  depends_on "uv"
+  depends_on "uv" => :build
 
   def install
     prefix.install "README.md", "LICENSE"
@@ -14,23 +14,17 @@ class Npmctl < Formula
     libexec.install_symlink prefix/"README.md"
     libexec.install_symlink prefix/"LICENSE"
 
-    (bin/"npmctl").write <<~SH
-      #!/usr/bin/env bash
-      set -euo pipefail
+    ENV["UV_NO_CONFIG"] = "1"
+    ENV["UV_PROJECT_ENVIRONMENT"] = libexec/"venv"
 
-      ROOT="#{opt_libexec}"
-      DATA="#{var}/npmctl"
-      CACHE="#{var}/cache/npmctl/uv"
-      PYTHON="#{Formula["python@3.13"].opt_bin}/python3.13"
+    system "uv", "sync",
+           "--project", libexec,
+           "--locked",
+           "--no-dev",
+           "--no-editable",
+           "--python", Formula["python@3.13"].opt_bin/"python3.13"
 
-      mkdir -p "$DATA" "$CACHE"
-
-      export UV_CACHE_DIR="$CACHE"
-      export UV_PROJECT_ENVIRONMENT="$DATA/.venv"
-
-      exec "#{Formula["uv"].opt_bin}/uv" run --directory "$ROOT" --locked --python "$PYTHON" npmctl "$@"
-    SH
-    chmod 0755, bin/"npmctl"
+    bin.install_symlink libexec/"venv/bin/npmctl"
   end
 
   test do

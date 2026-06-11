@@ -6,7 +6,7 @@ class Dockgectl < Formula
   license "MIT"
 
   depends_on "python@3.13"
-  depends_on "uv"
+  depends_on "uv" => :build
 
   def install
     prefix.install "README.md", "README-zh.md", "LICENSE"
@@ -15,30 +15,20 @@ class Dockgectl < Formula
     libexec.install_symlink prefix/"README-zh.md"
     libexec.install_symlink prefix/"LICENSE"
 
-    (bin/"dockgectl").write <<~SH
-      #!/usr/bin/env bash
-      set -euo pipefail
+    ENV["UV_NO_CONFIG"] = "1"
+    ENV["UV_PROJECT_ENVIRONMENT"] = libexec/"venv"
 
-      ROOT="#{opt_libexec}"
-      DATA="${DOCKGECTL_UV_DATA:-#{var}/dockgectl}"
-      CACHE="${DOCKGECTL_UV_CACHE:-#{var}/cache/dockgectl/uv}"
-      PYTHON="#{Formula["python@3.13"].opt_bin}/python3.13"
+    system "uv", "sync",
+           "--project", libexec,
+           "--locked",
+           "--no-dev",
+           "--no-editable",
+           "--python", Formula["python@3.13"].opt_bin/"python3.13"
 
-      mkdir -p "$DATA" "$CACHE"
-
-      export UV_CACHE_DIR="$CACHE"
-      export UV_PROJECT_ENVIRONMENT="$DATA/.venv"
-      export UV_NO_CONFIG=1
-
-      exec "#{Formula["uv"].opt_bin}/uv" run --directory "$ROOT" --locked --python "$PYTHON" dockgectl "$@"
-    SH
-    chmod 0755, bin/"dockgectl"
+    bin.install_symlink libexec/"venv/bin/dockgectl"
   end
 
   test do
-    ENV["DOCKGECTL_UV_DATA"] = testpath/"data"
-    ENV["DOCKGECTL_UV_CACHE"] = testpath/"cache"
-
     output = shell_output("#{bin}/dockgectl --help")
     assert_match "Dockge CLI", output
   end

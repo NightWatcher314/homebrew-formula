@@ -1,8 +1,8 @@
 class Dockgectl < Formula
   desc "CLI for Dockge Socket.IO automation"
   homepage "https://github.com/NightWatcher314/dockgectl"
-  url "https://github.com/NightWatcher314/dockgectl/archive/refs/tags/v0.1.2.tar.gz"
-  sha256 "9b1f7d5b2fd5377824186bf6eaf36975d436d74ae4d93aaacab4c192c468fe3a"
+  url "https://github.com/NightWatcher314/dockgectl/archive/refs/tags/v0.2.0.tar.gz"
+  sha256 "7c51215a8e2c76376ac9dfb2e647c68f1313bc9d8a88fb8368486d112be51f59"
   license "MIT"
 
   depends_on "python@3.13"

@@ -8,6 +8,7 @@ class ZoteroPdf2zhNext < Formula
 
   depends_on "uv" => :build
   depends_on "python@3.13"
+  depends_on "spatialindex"
 
   def install
     libexec.install Dir["*"]
@@ -22,7 +23,14 @@ class ZoteroPdf2zhNext < Formula
            "--no-editable",
            "--python", Formula["python@3.13"].opt_bin/"python3.13"
 
-    bin.install_symlink libexec/"venv/bin/zotero-pdf2zh-next"
+    (bin/"zotero-pdf2zh-next").write <<~SH
+      #!/usr/bin/env bash
+      set -euo pipefail
+
+      export LD_LIBRARY_PATH="#{Formula["spatialindex"].opt_lib}:${LD_LIBRARY_PATH:-}"
+      exec "#{opt_libexec}/venv/bin/zotero-pdf2zh-next" "$@"
+    SH
+    chmod 0755, bin/"zotero-pdf2zh-next"
   end
 
   service do

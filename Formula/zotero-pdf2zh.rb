@@ -7,6 +7,7 @@ class ZoteroPdf2zh < Formula
 
   depends_on "uv" => :build
   depends_on "python@3.12"
+  depends_on "spatialindex"
 
   def install
     libexec.install Dir["*"]
@@ -28,10 +29,12 @@ class ZoteroPdf2zh < Formula
       set -euo pipefail
 
       ROOT="#{opt_libexec}"
-      DATA="#{var}/zotero-pdf2zh"
+      DATA="${ZOTERO_PDF2ZH_DATA:-#{var}/zotero-pdf2zh}"
       SRC_CFG="$ROOT/config"
       DST_CFG="$DATA/config"
       PYTHON="#{opt_libexec}/venv/bin/python"
+
+      export LD_LIBRARY_PATH="#{Formula["spatialindex"].opt_lib}:${LD_LIBRARY_PATH:-}"
 
       mkdir -p "$DST_CFG" "$DATA/translated"
 
@@ -63,6 +66,8 @@ class ZoteroPdf2zh < Formula
   end
 
   test do
+    ENV["ZOTERO_PDF2ZH_DATA"] = testpath/"data"
+
     system bin/"zotero-pdf2zh", "--help"
   end
 end

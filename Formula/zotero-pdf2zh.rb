@@ -30,13 +30,21 @@ class ZoteroPdf2zh < Formula
 
       ROOT="#{opt_libexec}"
       DATA="${ZOTERO_PDF2ZH_DATA:-#{var}/zotero-pdf2zh}"
+      APP="$DATA/app"
       SRC_CFG="$ROOT/config"
       DST_CFG="$DATA/config"
       PYTHON="#{opt_libexec}/venv/bin/python"
 
       export LD_LIBRARY_PATH="#{Formula["spatialindex"].opt_lib}:${LD_LIBRARY_PATH:-}"
 
-      mkdir -p "$DST_CFG" "$DATA/translated"
+      mkdir -p "$APP" "$DST_CFG" "$DATA/translated"
+
+      for item in bo.mp3 favicon.svg index.html server.py requirements.txt README-v4.0.1.pdf utils warmup doc; do
+        if [ -e "$ROOT/$item" ]; then
+          rm -rf "$APP/$item"
+          cp -R "$ROOT/$item" "$APP/$item"
+        fi
+      done
 
       if [ -d "$SRC_CFG" ]; then
         for f in "$SRC_CFG"/*.example; do
@@ -48,10 +56,11 @@ class ZoteroPdf2zh < Formula
         done
       fi
 
-      cd "$ROOT"
-      ln -snf "$DST_CFG" config
-      ln -snf "$DATA/translated" translated
+      rm -rf "$APP/config" "$APP/translated"
+      ln -snf "$DST_CFG" "$APP/config"
+      ln -snf "$DATA/translated" "$APP/translated"
 
+      cd "$APP"
       exec "$PYTHON" server.py --check_update false "$@"
     SH
     chmod 0755, bin/"zotero-pdf2zh"

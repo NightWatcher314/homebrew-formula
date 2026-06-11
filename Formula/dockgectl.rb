@@ -5,8 +5,8 @@ class Dockgectl < Formula
   sha256 "7c51215a8e2c76376ac9dfb2e647c68f1313bc9d8a88fb8368486d112be51f59"
   license "MIT"
 
-  depends_on "python@3.13"
   depends_on "uv" => :build
+  depends_on "python@3.13"
 
   def install
     prefix.install "README.md", "README-zh.md", "LICENSE"

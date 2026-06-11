@@ -5,8 +5,8 @@ class Npmctl < Formula
   sha256 "47d94b3aa7e66830f1f15f9bd8f9a7293ccc5020a01b82229a127a098234a87d"
   license "MIT"
 
-  depends_on "python@3.13"
   depends_on "uv" => :build
+  depends_on "python@3.13"
 
   def install
     prefix.install "README.md", "LICENSE"

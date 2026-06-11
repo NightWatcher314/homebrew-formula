@@ -6,29 +6,23 @@ class ZoteroPdf2zhNext < Formula
   sha256 "59db511814ad23eea98c079c05cb82d352b0ae4c38a9d9993e11f3559de3d105"
   license "AGPL-3.0-or-later"
 
+  depends_on "uv" => :build
   depends_on "python@3.13"
-  depends_on "uv"
 
   def install
     libexec.install Dir["*"]
 
-    (bin/"zotero-pdf2zh-next").write <<~SH
-      #!/usr/bin/env bash
-      set -euo pipefail
+    ENV["UV_NO_CONFIG"] = "1"
+    ENV["UV_PROJECT_ENVIRONMENT"] = libexec/"venv"
 
-      ROOT="#{opt_libexec}/server"
-      DATA="#{var}/zotero-pdf2zh-next"
-      CACHE="#{var}/cache/zotero-pdf2zh-next/uv"
-      PYTHON="#{Formula["python@3.13"].opt_bin}/python3.13"
+    system "uv", "sync",
+           "--project", libexec/"server",
+           "--locked",
+           "--no-dev",
+           "--no-editable",
+           "--python", Formula["python@3.13"].opt_bin/"python3.13"
 
-      mkdir -p "$DATA" "$CACHE"
-
-      export UV_CACHE_DIR="$CACHE"
-      export UV_PROJECT_ENVIRONMENT="$DATA/.venv"
-
-      exec "#{Formula["uv"].opt_bin}/uv" run --directory "$ROOT" --locked --python "$PYTHON" zotero-pdf2zh-next "$@"
-    SH
-    chmod 0755, bin/"zotero-pdf2zh-next"
+    bin.install_symlink libexec/"venv/bin/zotero-pdf2zh-next"
   end
 
   service do

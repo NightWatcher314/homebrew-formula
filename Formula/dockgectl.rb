@@ -20,14 +20,15 @@ class Dockgectl < Formula
       set -euo pipefail
 
       ROOT="#{opt_libexec}"
-      DATA="#{var}/dockgectl"
-      CACHE="#{var}/cache/dockgectl/uv"
+      DATA="${DOCKGECTL_UV_DATA:-#{var}/dockgectl}"
+      CACHE="${DOCKGECTL_UV_CACHE:-#{var}/cache/dockgectl/uv}"
       PYTHON="#{Formula["python@3.13"].opt_bin}/python3.13"
 
       mkdir -p "$DATA" "$CACHE"
 
       export UV_CACHE_DIR="$CACHE"
       export UV_PROJECT_ENVIRONMENT="$DATA/.venv"
+      export UV_NO_CONFIG=1
 
       exec "#{Formula["uv"].opt_bin}/uv" run --directory "$ROOT" --locked --python "$PYTHON" dockgectl "$@"
     SH
@@ -35,6 +36,9 @@ class Dockgectl < Formula
   end
 
   test do
+    ENV["DOCKGECTL_UV_DATA"] = testpath/"data"
+    ENV["DOCKGECTL_UV_CACHE"] = testpath/"cache"
+
     output = shell_output("#{bin}/dockgectl --help")
     assert_match "Dockge CLI", output
   end

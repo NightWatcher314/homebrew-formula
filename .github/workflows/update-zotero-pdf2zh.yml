@@ -146,6 +146,41 @@ jobs:
         git push
         echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
+    - name: Checkout server README repository
+      uses: actions/checkout@v7
+      with:
+        repository: NightWatcher314/zotero-pdf2zh-server
+        ssh-key: ${{ secrets.ZOTERO_PDF2ZH_SERVER_DEPLOY_KEY }}
+        path: zotero-pdf2zh-server
+
+    - name: Sync server README version
+      env:
+        VERSION: ${{ steps.update_formula.outputs.latest_version }}
+      run: |
+        set -euo pipefail
+        cd zotero-pdf2zh-server
+
+        CURRENT_VERSION=$(sed -n 's|.*formula-version:zotero-pdf2zh --> \(v[0-9][0-9.]*\).*|\1|p' README.md | head -n 1)
+        if [ -z "$CURRENT_VERSION" ]; then
+          echo "Cannot determine current version from server README marker." >&2
+          exit 1
+        fi
+
+        if [ "$CURRENT_VERSION" = "$VERSION" ]; then
+          echo "Server README already matches formula: $VERSION"
+          exit 0
+        fi
+
+        sed -i "s|formula-version:zotero-pdf2zh --> v[0-9][0-9.]*|formula-version:zotero-pdf2zh --> $VERSION|" README.md
+        grep -Fq "formula-version:zotero-pdf2zh --> $VERSION" README.md
+        git diff --check
+
+        git config user.name 'github-actions[bot]'
+        git config user.email 'github-actions[bot]@users.noreply.github.com'
+        git add README.md
+        git commit -m "docs: sync zotero-pdf2zh to $VERSION"
+        git push origin HEAD:main
+
     - name: Notify actual update
       if: steps.update_formula.outputs.update_needed == 'true'
       env:

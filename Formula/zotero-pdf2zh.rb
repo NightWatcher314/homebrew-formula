@@ -13,7 +13,7 @@ class ZoteroPdf2zh < Formula
     libexec.install Dir["*"]
 
     ENV["UV_NO_CONFIG"] = "1"
-    system "uv", "venv", libexec/"venv", "--python", Formula["python@3.12"].opt_bin/"python3.12"
+    system "uv", "venv", libexec/"venv", "--python", formula_opt_bin("python@3.12")/"python3.12"
     system "uv", "pip", "install",
            "--python", libexec/"venv/bin/python",
            "flask",
@@ -35,15 +35,22 @@ class ZoteroPdf2zh < Formula
       DST_CFG="$DATA/config"
       PYTHON="#{opt_libexec}/venv/bin/python"
 
-      export LD_LIBRARY_PATH="#{Formula["spatialindex"].opt_lib}:${LD_LIBRARY_PATH:-}"
+      export LD_LIBRARY_PATH="#{formula_opt_lib("spatialindex")}:${LD_LIBRARY_PATH:-}"
 
       mkdir -p "$APP" "$DST_CFG" "$DATA/translated"
 
-      for item in bo.mp3 favicon.svg index.html server.py requirements.txt README-v4.0.1.pdf utils warmup doc; do
+      for item in bo.mp3 favicon.svg index.html server.py requirements.txt utils warmup doc; do
         if [ -e "$ROOT/$item" ]; then
           rm -rf "$APP/$item"
           cp -R "$ROOT/$item" "$APP/$item"
         fi
+      done
+
+      rm -f "$APP"/README-*.pdf
+      for readme in "$ROOT"/README-*.pdf; do
+        [ -f "$readme" ] || continue
+        item="$(basename "$readme")"
+        cp "$readme" "$APP/$item"
       done
 
       if [ -d "$SRC_CFG" ]; then
@@ -67,7 +74,7 @@ class ZoteroPdf2zh < Formula
   end
 
   service do
-    run [opt_bin/"zotero-pdf2zh", "--port", "47700", "--check_update", "false"]
+    run [opt_bin/"zotero-pdf2zh", "--port", "47700"]
     keep_alive true
     working_dir opt_libexec
     log_path var/"log/zotero-pdf2zh.log"

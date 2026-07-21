@@ -3,72 +3,183 @@ name: Update zotero-pdf2zh
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 0 * * *'  # Run every day at midnight
+    - cron: '0 0 * * *'  # Run every day at midnight UTC
+
+concurrency:
+  group: update-zotero-pdf2zh
+  cancel-in-progress: false
 
 env:
   UPSTREAM_REPO: guaguastandup/zotero-pdf2zh
+  NOTICE_TITLE: zotero-pdf2zh 自动更新通知
 
 jobs:
   update:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pull-requests: write
+      issues: write
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
 
     - name: Get current version from formula
       id: current_version
       run: |
-        CURRENT_VERSION=$(sed -n 's|.*releases/download/\(v[0-9][0-9.]*\)/.*|\1|p' Formula/zotero-pdf2zh.rb)
-        echo "current_version=${CURRENT_VERSION}" >> $GITHUB_OUTPUT
+        set -euo pipefail
+
+        CURRENT_VERSION=$(sed -n 's|.*releases/download/\(v[0-9][0-9.]*\)/.*|\1|p' Formula/zotero-pdf2zh.rb | head -n 1)
+        README_VERSION=$(sed -n 's|.*formula-version:zotero-pdf2zh --> \(v[0-9][0-9.]*\).*|\1|p' README.md | head -n 1)
+
+        if [ -z "$CURRENT_VERSION" ]; then
+          echo "Cannot determine current version from Formula/zotero-pdf2zh.rb." >&2
+          exit 1
+        fi
+
+        if [ -z "$README_VERSION" ]; then
+          echo "Cannot determine README version from the zotero-pdf2zh marker." >&2
+          exit 1
+        fi
+
+        echo "current_version=${CURRENT_VERSION}" >> "$GITHUB_OUTPUT"
+        echo "readme_version=${README_VERSION}" >> "$GITHUB_OUTPUT"
 
     - name: Get latest release and update formula
       id: update_formula
       env:
+        CURRENT_VERSION: ${{ steps.current_version.outputs.current_version }}
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        README_VERSION: ${{ steps.current_version.outputs.readme_version }}
       run: |
-        LATEST_VERSION=$(gh release list -R "${{ env.UPSTREAM_REPO }}" --json tagName,isPrerelease -L 10 | jq -r '[.[] | select(.isPrerelease == false)] | .[0].tagName')
-        echo "latest_version=${LATEST_VERSION}" >> $GITHUB_OUTPUT
+        set -euo pipefail
+
+        LATEST_VERSION=$(gh release list -R "${{ env.UPSTREAM_REPO }}" \
+          --exclude-drafts \
+          --exclude-pre-releases \
+          --limit 1 \
+          --json tagName \
+          --jq '.[0].tagName // empty')
 
         if [ -z "$LATEST_VERSION" ]; then
-          echo "No new release found."
-          echo "update_needed=false" >> $GITHUB_OUTPUT
+          echo "Cannot determine latest stable release from ${{ env.UPSTREAM_REPO }}." >&2
+          exit 1
+        fi
+
+        if ! [[ "$LATEST_VERSION" =~ ^v[0-9]+(\.[0-9]+)*$ ]]; then
+          echo "Unexpected release tag: $LATEST_VERSION" >&2
+          exit 1
+        fi
+
+        echo "latest_version=${LATEST_VERSION}" >> "$GITHUB_OUTPUT"
+
+        if [ "$CURRENT_VERSION" != "$LATEST_VERSION" ]; then
+          URL=$(gh release view "$LATEST_VERSION" -R "${{ env.UPSTREAM_REPO }}" \
+            --json assets \
+            --jq '[.assets[] | select(.name == "server.zip")][0].url // empty')
+
+          if [ -z "$URL" ]; then
+            echo "server.zip not found in release $LATEST_VERSION." >&2
+            exit 1
+          fi
+
+          EXPECTED_URL="https://github.com/${UPSTREAM_REPO}/releases/download/${LATEST_VERSION}/server.zip"
+          if [ "$URL" != "$EXPECTED_URL" ]; then
+            echo "Unexpected server.zip URL: $URL" >&2
+            exit 1
+          fi
+
+          curl --fail --location --retry 3 --silent --show-error --output server.zip "$URL"
+          unzip -tq server.zip
+          SERVER_ENTRY=$(unzip -Z1 server.zip | awk '/(^|\/)server\.py$/ {print; exit}')
+
+          if [ -z "$SERVER_ENTRY" ]; then
+            echo "server.py not found in release $LATEST_VERSION." >&2
+            exit 1
+          fi
+
+          SERVER_VERSION=$(unzip -p server.zip "$SERVER_ENTRY" | awk -F'"' '/^__version__ = / {print $2; exit}')
+          if [ "v${SERVER_VERSION}" != "$LATEST_VERSION" ]; then
+            echo "Release tag $LATEST_VERSION does not match server version ${SERVER_VERSION:-missing}." >&2
+            exit 1
+          fi
+
+          SHA256=$(sha256sum server.zip | cut -d' ' -f1)
+
+          sed -i "s|url \".*\"|url \"${URL}\"|" Formula/zotero-pdf2zh.rb
+          sed -i "s|sha256 \".*\"|sha256 \"${SHA256}\"|" Formula/zotero-pdf2zh.rb
+        fi
+
+        if [ "$README_VERSION" != "$LATEST_VERSION" ]; then
+          sed -i "s|formula-version:zotero-pdf2zh --> v[0-9][0-9.]*|formula-version:zotero-pdf2zh --> ${LATEST_VERSION}|" README.md
+        fi
+
+        if git diff --quiet -- Formula/zotero-pdf2zh.rb README.md; then
+          echo "No update needed. Current: $LATEST_VERSION"
+          echo "update_needed=false" >> "$GITHUB_OUTPUT"
           exit 0
         fi
 
-        if [ "${{ steps.current_version.outputs.current_version }}" = "$LATEST_VERSION" ]; then
-          echo "No update needed. Current: ${{ steps.current_version.outputs.current_version }}, Latest: $LATEST_VERSION"
-          echo "update_needed=false" >> $GITHUB_OUTPUT
-          exit 0
-        fi
+        grep -Fq "releases/download/${LATEST_VERSION}/server.zip" Formula/zotero-pdf2zh.rb
+        grep -Fq "formula-version:zotero-pdf2zh --> ${LATEST_VERSION}" README.md
+        ruby -c Formula/zotero-pdf2zh.rb
+        git diff --check
 
-        RELEASE_ASSETS_JSON=$(gh release view "$LATEST_VERSION" -R "${{ env.UPSTREAM_REPO }}" --json assets)
-        URL=$(echo "$RELEASE_ASSETS_JSON" | jq -r '.assets[] | select(.name == "server.zip") | .url')
-
-        if [ -z "$URL" ]; then
-          echo "server.zip not found in release $LATEST_VERSION."
-          echo "update_needed=false" >> $GITHUB_OUTPUT
-          exit 0
-        fi
-
-        echo "Update needed. Current: ${{ steps.current_version.outputs.current_version }}, Latest: $LATEST_VERSION"
-        echo "update_needed=true" >> $GITHUB_OUTPUT
-        echo "url=${URL}" >> $GITHUB_OUTPUT
-
-        curl -L -o server.zip "$URL"
-        SHA256=$(sha256sum server.zip | cut -d' ' -f1)
-        echo "sha256=${SHA256}" >> $GITHUB_OUTPUT
-
-        sed -i "s|url \".*\"|url \"${URL}\"|" Formula/zotero-pdf2zh.rb
-        sed -i "s|sha256 \".*\"|sha256 \"${SHA256}\"|" Formula/zotero-pdf2zh.rb
+        echo "Update needed. Formula: $CURRENT_VERSION, README: $README_VERSION, Latest: $LATEST_VERSION"
+        echo "update_needed=true" >> "$GITHUB_OUTPUT"
 
     - name: Commit and push changes
       if: steps.update_formula.outputs.update_needed == 'true'
+      id: commit
+      env:
+        VERSION: ${{ steps.update_formula.outputs.latest_version }}
       run: |
-        git config --global user.name 'github-actions[bot]'
-        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-        git add Formula/zotero-pdf2zh.rb
-        git commit -m "Update zotero-pdf2zh to ${{ steps.update_formula.outputs.latest_version }}"
+        set -euo pipefail
+
+        git config user.name 'github-actions[bot]'
+        git config user.email 'github-actions[bot]@users.noreply.github.com'
+        git add Formula/zotero-pdf2zh.rb README.md
+        git diff --cached --quiet && {
+          echo "Update was requested, but no files changed." >&2
+          exit 1
+        }
+        git commit -m "Update zotero-pdf2zh to $VERSION"
         git push
+        echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+    - name: Notify actual update
+      if: steps.update_formula.outputs.update_needed == 'true'
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        NEW_SHA: ${{ steps.commit.outputs.sha }}
+        VERSION: ${{ steps.update_formula.outputs.latest_version }}
+      run: |
+        set -euo pipefail
+
+        ISSUE_NUMBER=$(gh issue list \
+          --repo "${{ github.repository }}" \
+          --state all \
+          --limit 100 \
+          --search "${NOTICE_TITLE} in:title" \
+          --json number,title \
+          --jq "map(select(.title == \"${NOTICE_TITLE}\"))[0].number // empty")
+
+        printf -v NOTICE_BODY '@%s zotero-pdf2zh 已自动更新至 `%s`。\n\n提交：%s/%s/commit/%s' \
+          "${{ github.repository_owner }}" \
+          "$VERSION" \
+          "$GITHUB_SERVER_URL" \
+          "$GITHUB_REPOSITORY" \
+          "$NEW_SHA"
+        printf -v ISSUE_BODY '%s\n\n%s' \
+          "$NOTICE_BODY" \
+          '此 issue 仅用于记录真实版本更新；无更新时不会产生评论。'
+
+        if [ -z "$ISSUE_NUMBER" ]; then
+          gh issue create \
+            --repo "${{ github.repository }}" \
+            --title "$NOTICE_TITLE" \
+            --body "$ISSUE_BODY"
+        else
+          gh issue comment "$ISSUE_NUMBER" \
+            --repo "${{ github.repository }}" \
+            --body "$NOTICE_BODY"
+        fi

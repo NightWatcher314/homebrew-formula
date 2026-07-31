@@ -1,8 +1,8 @@
 class Npmctl < Formula
   desc "CLI for Nginx Proxy Manager API automation"
   homepage "https://github.com/NightWatcher314/npmctl"
-  url "https://github.com/NightWatcher314/npmctl/archive/refs/tags/v0.5.1.tar.gz"
-  sha256 "53ec269904c73aeb5e504289f9a2235bd581cf5275d5a2283c626e824d47bc9e"
+  url "https://github.com/NightWatcher314/npmctl/archive/refs/tags/v0.5.2.tar.gz"
+  sha256 "27be09062e1c7135691acb3a7ddd68f255215d443cb2ed509096f4d287964ed8"
   license "MIT"
 
   depends_on "uv" => :build

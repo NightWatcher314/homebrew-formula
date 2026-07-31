@@ -1,9 +1,9 @@
 class ZoteroPdf2zhNext < Formula
   desc "Minimal Zotero pdf2zh_next local server"
   homepage "https://github.com/NightWatcher314/zotero-pdf2zh-next"
-  url "https://github.com/NightWatcher314/zotero-pdf2zh-next/archive/c25c40a91ebbfe5642c58522b2955706ab097332.tar.gz"
-  version "5.2.8"
-  sha256 "d7ea2a635f13d1b68d86fd7672af7362c25ec70e9bd86db3fdd043c9d73cd7c7"
+  url "https://github.com/NightWatcher314/zotero-pdf2zh-next/archive/323d3fd6acbc7e23e7539a610133be81a9eeb7eb.tar.gz"
+  version "5.2.9"
+  sha256 "3ff39d83fca2183f7bc03a158e98a16b0b207bfd75d35b46704b35c027e4e30e"
   license "AGPL-3.0-or-later"
 
   bottle do

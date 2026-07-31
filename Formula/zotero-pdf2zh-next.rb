@@ -5,6 +5,7 @@ class ZoteroPdf2zhNext < Formula
   version "5.2.7"
   sha256 "24f4d93dbcd2c65199a93910df86acfb479a0e597311733a1991229a7cfa0341"
   license "AGPL-3.0-or-later"
+  preserve_rpath
 
   depends_on "uv" => :build
   depends_on "python@3.13"

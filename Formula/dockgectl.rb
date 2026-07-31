@@ -23,7 +23,7 @@ class Dockgectl < Formula
            "--locked",
            "--no-dev",
            "--no-editable",
-           "--python", Formula["python@3.13"].opt_bin/"python3.13"
+           "--python", formula_opt_bin("python@3.13")/"python3.13"
 
     bin.install_symlink libexec/"venv/bin/dockgectl"
   end

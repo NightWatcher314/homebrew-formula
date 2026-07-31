@@ -12,13 +12,14 @@ class ZoteroPdf2zhNext < Formula
   preserve_rpath
 
   def install
-    libexec.install Dir["*"]
+    libexec.install Dir["server/*.py"]
+    libexec.install "server/README.md", "server/pyproject.toml", "server/uv.lock"
 
     ENV["UV_NO_CONFIG"] = "1"
     ENV["UV_PROJECT_ENVIRONMENT"] = libexec/"venv"
 
     system "uv", "sync",
-           "--project", libexec/"server",
+           "--project", libexec,
            "--locked",
            "--no-dev",
            "--no-editable",

@@ -198,7 +198,7 @@ jobs:
           --json number,title \
           --jq "map(select(.title == \"${NOTICE_TITLE}\"))[0].number // empty")
 
-        printf -v NOTICE_BODY '@%s zotero-pdf2zh 已自动更新至 `%s`。\n\n提交：%s/%s/commit/%s' \
+        printf -v NOTICE_BODY "@%s zotero-pdf2zh 已自动更新至 \`%s\`。\n\n提交：%s/%s/commit/%s" \
           "${{ github.repository_owner }}" \
           "$VERSION" \
           "$GITHUB_SERVER_URL" \

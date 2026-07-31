@@ -5,11 +5,11 @@ class ZoteroPdf2zhNext < Formula
   version "5.2.7"
   sha256 "24f4d93dbcd2c65199a93910df86acfb479a0e597311733a1991229a7cfa0341"
   license "AGPL-3.0-or-later"
-  preserve_rpath
 
   depends_on "uv" => :build
   depends_on "python@3.13"
   depends_on "spatialindex"
+  preserve_rpath
 
   def install
     libexec.install Dir["*"]
@@ -22,13 +22,13 @@ class ZoteroPdf2zhNext < Formula
            "--locked",
            "--no-dev",
            "--no-editable",
-           "--python", Formula["python@3.13"].opt_bin/"python3.13"
+           "--python", formula_opt_bin("python@3.13")/"python3.13"
 
     (bin/"zotero-pdf2zh-next").write <<~SH
       #!/usr/bin/env bash
       set -euo pipefail
 
-      export LD_LIBRARY_PATH="#{Formula["spatialindex"].opt_lib}:${LD_LIBRARY_PATH:-}"
+      export LD_LIBRARY_PATH="#{formula_opt_lib("spatialindex")}:${LD_LIBRARY_PATH:-}"
       exec "#{opt_libexec}/venv/bin/zotero-pdf2zh-next" "$@"
     SH
     chmod 0755, bin/"zotero-pdf2zh-next"

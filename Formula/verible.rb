@@ -1,14 +1,13 @@
 class Verible < Formula
   desc "SystemVerilog parser, formatter, linter, and language server"
   homepage "https://github.com/chipsalliance/verible"
+  url "https://github.com/chipsalliance/verible/releases/download/v0.0-4053-g89d4d98a/verible-v0.0-4053-g89d4d98a-macOS.tar.gz"
   version "0.0-4053-g89d4d98a"
+  sha256 "6eb2ed4f443baed841159f3b23ebebd70d2fde789e64f6f3e2baa02ef73a0ddd"
   license "Apache-2.0"
 
   on_macos do
-    on_arm do
-      url "https://github.com/chipsalliance/verible/releases/download/v#{version}/verible-v#{version}-macOS.tar.gz"
-      sha256 "6eb2ed4f443baed841159f3b23ebebd70d2fde789e64f6f3e2baa02ef73a0ddd"
-    end
+    depends_on arch: :arm64
   end
 
   on_linux do

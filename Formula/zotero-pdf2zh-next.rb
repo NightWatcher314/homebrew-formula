@@ -6,6 +6,13 @@ class ZoteroPdf2zhNext < Formula
   sha256 "10c89f1d1f5b60d67a92dc84ab7ff39e55d7911921591a9ffb832c787ea5be11"
   license "AGPL-3.0-or-later"
 
+  bottle do
+    root_url "https://github.com/NightWatcher314/homebrew-formula/releases/download/zotero-pdf2zh-next-5.3.0"
+    sha256 arm64_tahoe:  "bb1a250b5d617621215a495e2f50b84e9749c4cb949494891e13558515be27cc"
+    sha256 arm64_sonoma: "5e7164d9cf3e71c560c2c3273ce73773a29e538bb19dfb9b43207d2a6348ff13"
+    sha256 x86_64_linux: "f11c92be4114c3907ca2c0bfe44905d9ebaabaa132b5adffeecadf3637340c9a"
+  end
+
   depends_on "uv" => :build
   depends_on "python@3.13"
   depends_on "spatialindex"

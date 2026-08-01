@@ -8,8 +8,10 @@ class ZoteroPdf2zhNext < Formula
   revision 1
 
   bottle do
-    root_url "https://github.com/NightWatcher314/homebrew-formula/releases/download/zotero-pdf2zh-next-5.2.9"
-    sha256 arm64_tahoe: "a93371449cd0267ceace128a3284becddaefa3a5e9895c529a4f4cb9fb704828"
+    root_url "https://github.com/NightWatcher314/homebrew-formula/releases/download/zotero-pdf2zh-next-5.2.9_1"
+    sha256 arm64_tahoe:  "cfc1f4d80faff21a1b10febaccf23c8d69ac7ff2b693500db3275995b6fca8e4"
+    sha256 arm64_sonoma: "c6988adc0d0071d5069a9c801b76de92ee42b7fcde15a4a54e5468fd0125644c"
+    sha256 x86_64_linux: "1f89d985ba831a3f5cc40d31dbc6c80e4cf67a7996d695c4c0e0e05c4760ad7e"
   end
 
   depends_on "uv" => :build

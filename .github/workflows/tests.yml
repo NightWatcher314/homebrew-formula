@@ -10,9 +10,16 @@ jobs:
   test-bot:
     strategy:
       matrix:
-        os: [macos-15-intel, macos-26]
         include:
+          # GitHub retires the macos-14 ARM runner on 2026-11-02.
+          - os: macos-14
+            arch: arm64
+          - os: macos-15-intel
+            arch: x86_64
+          - os: macos-26
+            arch: arm64
           - os: ubuntu-latest
+            arch: x86_64
             container:
               image: ghcr.io/homebrew/brew:main
               options: --privileged
@@ -36,6 +43,9 @@ jobs:
           path: ${{ steps.set-up-homebrew.outputs.gems-path }}
           key: ${{ matrix.os }}-rubygems-${{ steps.set-up-homebrew.outputs.gems-hash }}
           restore-keys: ${{ matrix.os }}-rubygems-
+
+      - name: Verify runner architecture
+        run: test "$(uname -m)" = "${{ matrix.arch }}"
 
       - run: brew test-bot --only-cleanup-before
 

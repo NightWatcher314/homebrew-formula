@@ -1,18 +1,10 @@
 class ZoteroPdf2zhNext < Formula
   desc "Minimal Zotero pdf2zh_next local server"
   homepage "https://github.com/NightWatcher314/zotero-pdf2zh-next"
-  url "https://github.com/NightWatcher314/zotero-pdf2zh-next/archive/323d3fd6acbc7e23e7539a610133be81a9eeb7eb.tar.gz"
-  version "5.2.9"
-  sha256 "3ff39d83fca2183f7bc03a158e98a16b0b207bfd75d35b46704b35c027e4e30e"
+  url "https://github.com/NightWatcher314/zotero-pdf2zh-next/archive/c518aa1010075202394abd325e7862e4999c9f5e.tar.gz"
+  version "5.3.0"
+  sha256 "10c89f1d1f5b60d67a92dc84ab7ff39e55d7911921591a9ffb832c787ea5be11"
   license "AGPL-3.0-or-later"
-  revision 1
-
-  bottle do
-    root_url "https://github.com/NightWatcher314/homebrew-formula/releases/download/zotero-pdf2zh-next-5.2.9_1"
-    sha256 arm64_tahoe:  "cfc1f4d80faff21a1b10febaccf23c8d69ac7ff2b693500db3275995b6fca8e4"
-    sha256 arm64_sonoma: "c6988adc0d0071d5069a9c801b76de92ee42b7fcde15a4a54e5468fd0125644c"
-    sha256 x86_64_linux: "1f89d985ba831a3f5cc40d31dbc6c80e4cf67a7996d695c4c0e0e05c4760ad7e"
-  end
 
   depends_on "uv" => :build
   depends_on "python@3.13"
@@ -27,9 +19,15 @@ class ZoteroPdf2zhNext < Formula
 
   def install
     libexec.install Dir["server/*.py"]
-    libexec.install "server/README.md", "server/pyproject.toml", "server/uv.lock"
+    libexec.install "server/LICENSES", "server/babeldoc", "server/pdf2zh_next",
+                    "server/rapidocr_onnxruntime"
+    libexec.install "server/README.md", "server/THIRD_PARTY_NOTICES.md",
+                    "server/pyproject.toml", "server/uv.lock"
 
+    ENV.delete "UV_INDEX_URL"
+    ENV.delete "PIP_INDEX_URL"
     ENV["UV_NO_CONFIG"] = "1"
+    ENV["UV_DEFAULT_INDEX"] = "https://pypi.org/simple"
     ENV["UV_PROJECT_ENVIRONMENT"] = libexec/"venv"
 
     system "uv", "sync",
@@ -39,8 +37,18 @@ class ZoteroPdf2zhNext < Formula
            "--no-editable",
            "--python", formula_opt_bin("python@3.13")/"python3.13"
 
+    site_packages = Pathname(Dir[(libexec/"venv/lib/python*/site-packages").to_s].fetch(0))
+    Dir[(site_packages/"**/{test,tests}").to_s].reverse_each do |test_path|
+      path = Pathname(test_path)
+      next if path.symlink? || !path.directory?
+
+      rm_r path
+    end
+    rm libexec/"venv/bin/ruff" if (libexec/"venv/bin/ruff").exist?
+    rm_r site_packages/"cv2/data" if (site_packages/"cv2/data").exist?
+    rm_r site_packages/"skimage/data" if (site_packages/"skimage/data").exist?
+
     if OS.linux?
-      site_packages = Pathname(Dir[(libexec/"venv/lib/python*/site-packages").to_s].fetch(0))
       zlib_lib = formula_opt_lib("zlib-ng-compat").to_s
 
       Dir[(site_packages/"**/*").to_s].each do |entry|
@@ -84,5 +92,30 @@ class ZoteroPdf2zhNext < Formula
   test do
     output = shell_output("#{bin}/zotero-pdf2zh-next --help")
     assert_match "Run the zotero-pdf2zh-next server", output
+
+    system libexec/"venv/bin/python", "-c", <<~PYTHON
+      from pathlib import Path
+
+      import babeldoc
+      import cv2
+      import pdf2zh_next
+      import rapidocr_onnxruntime
+      import skimage
+
+      site_packages = Path(pdf2zh_next.__file__).resolve().parent.parent
+      unwanted_tests = [
+          path for path in site_packages.rglob("*")
+          if path.is_dir() and path.name in {"test", "tests"}
+      ]
+      assert not unwanted_tests, unwanted_tests[:10]
+      assert not (Path("#{libexec}/venv/bin/ruff")).exists()
+      assert not (site_packages / "cv2/data").exists()
+      assert not (site_packages / "skimage/data").exists()
+      assert pdf2zh_next.__version__ == "2.8.2"
+      assert babeldoc.__version__ == "0.5.24"
+      assert rapidocr_onnxruntime.__file__
+      assert cv2.__version__
+      assert skimage.__version__
+    PYTHON
   end
 end

@@ -5,6 +5,13 @@ class Dockgectl < Formula
   sha256 "1b18516041145421a28a9f4dc471b515f1e700328b22f604c9575c71780d39d6"
   license "MIT"
 
+  bottle do
+    root_url "https://github.com/NightWatcher314/homebrew-formula/releases/download/dockgectl-0.2.4"
+    sha256 cellar: :any_skip_relocation, arm64_tahoe:  "1434d84ae1fd3d7c8f99143d888e359efa6c4e07fbe7c38859cd9977d2540abd"
+    sha256 cellar: :any_skip_relocation, arm64_sonoma: "0d14ed65debcfbbdd208c0f6b639da9ef2f51674bfd42e2643a71221ea60dca3"
+    sha256 cellar: :any_skip_relocation, x86_64_linux: "31522df1c88dd77ec95cea6d2f2bf2e14eb1b07b07fea9b78993512585f8b4bd"
+  end
+
   depends_on "uv" => :build
   depends_on "python@3.13"
 

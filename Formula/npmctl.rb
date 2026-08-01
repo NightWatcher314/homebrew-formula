@@ -8,8 +8,9 @@ class Npmctl < Formula
   bottle do
     root_url "https://github.com/NightWatcher314/homebrew-formula/releases/download/npmctl-0.5.2"
     rebuild 1
-    sha256 cellar: :any_skip_relocation, arm64_tahoe:  "939b7382d7432b63cdad81e3574711c9afa80407c40f26bf5e8f2a815ad593b0"
-    sha256 cellar: :any_skip_relocation, x86_64_linux: "3b92814733ac0929f60d74d7bae83911f0637c8239632127a01adb9bcf475cb7"
+    sha256 cellar: :any_skip_relocation, arm64_tahoe:  "881c770341b57bced39846b4b8b9b9ac304a0aae53786c4a7114a56e7121c301"
+    sha256 cellar: :any_skip_relocation, arm64_sonoma: "2a97d44f0bf1527f6b40f94fd1099fafe0817990f7ea0327fe1e179598b9bbee"
+    sha256 cellar: :any_skip_relocation, x86_64_linux: "7a0b49c529d5e628c18bdf1496010b797a04fa60724269c9ebea9d17d1d3ab7c"
   end
 
   depends_on "uv" => :build

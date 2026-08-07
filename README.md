@@ -10,11 +10,12 @@ brew tap NightWatcher314/homebrew-formula
 
 ## 目前包含
 
-当前包含 6 个 formula：
+当前包含 7 个 formula：
 
 - [dockgectl](https://github.com/NightWatcher314/dockgectl) — Dockge Socket.IO 自动化 CLI（Python，提供 bottle）
 - [npmctl](https://github.com/NightWatcher314/npmctl) — Nginx Proxy Manager API 自动化 CLI（Python，提供 bottle）
 - [SbarLua](https://github.com/FelixKratz/SbarLua) — SketchyBar 的 Lua C 模块
+- [sysz](https://github.com/NightWatcher314/sysz) — 统一管理 Linux systemd 与 macOS launchd 服务的 fzf TUI
 - [zotero-pdf2zh-next](https://github.com/NightWatcher314/zotero-pdf2zh-next) — 精简版 Zotero pdf2zh_next 本地服务器（Python，提供 bottle）
 - [zotero-pdf2zh](https://github.com/guaguastandup/zotero-pdf2zh) — 当前版本 <!-- formula-version:zotero-pdf2zh --> v4.0.3；Zotero PDF → ZH 本地服务器旧版配方（Python，安装期用 uv 创建固定 venv）
 - [verible](https://github.com/chipsalliance/verible) — SystemVerilog formatter/linter/language server（二进制包，支持 Linux x86_64/arm64 与 macOS arm64）

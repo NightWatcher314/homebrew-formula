@@ -1,8 +1,8 @@
 class Sysz < Formula
   desc "Fzf terminal UI for systemd and macOS launchd"
   homepage "https://github.com/NightWatcher314/sysz"
-  url "https://github.com/NightWatcher314/sysz/releases/download/2.0.0/sysz"
-  sha256 "70caf788ee843d8df136a34e3d88a4cc2cdcf5f3c6cda4d73d9f2a21315564ce"
+  url "https://github.com/NightWatcher314/sysz/releases/download/2.1.0/sysz"
+  sha256 "85ee2a4c106e1e241525a3b37d7e6a8da7d267aefc9db9e4f7fd708f1bd2d524"
   license "Unlicense"
 
   depends_on "bash"
@@ -14,6 +14,6 @@ class Sysz < Formula
   end
 
   test do
-    assert_match "sysz 2.0.0", shell_output("#{bin}/sysz --version")
+    assert_match "sysz 2.1.0", shell_output("#{bin}/sysz --version")
   end
 end

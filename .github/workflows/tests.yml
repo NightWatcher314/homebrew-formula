@@ -53,11 +53,35 @@ jobs:
 
       - run: brew test-bot --only-tap-syntax
 
-      - run: brew test-bot --only-formulae
-        if: github.event_name == 'pull_request'
+      - name: Detect formulae changed by push
+        id: pushed-formulae
+        if: github.event_name == 'push'
+        run: |
+          repository="${{ steps.set-up-homebrew.outputs.repository-path }}"
+          "$repository/.github/scripts/pushed-formulae.sh" \
+            "$repository" \
+            "${{ github.repository }}" \
+            "${{ github.event.before }}" \
+            "${{ github.sha }}" \
+            >> "$GITHUB_OUTPUT"
+
+      - name: Test changed formulae
+        if: github.event_name == 'pull_request' || steps.pushed-formulae.outputs.changed == 'true'
+        env:
+          ADDED_FORMULAE: ${{ steps.pushed-formulae.outputs.added_formulae }}
+          DELETED_FORMULAE: ${{ steps.pushed-formulae.outputs.deleted_formulae }}
+          TESTING_FORMULAE: ${{ steps.pushed-formulae.outputs.testing_formulae }}
+        run: |
+          args=(test-bot --only-formulae)
+          if [[ "$GITHUB_EVENT_NAME" == "push" ]]; then
+            [[ -z "$TESTING_FORMULAE" ]] || args+=("--testing-formulae=$TESTING_FORMULAE")
+            [[ -z "$ADDED_FORMULAE" ]] || args+=("--added-formulae=$ADDED_FORMULAE")
+            [[ -z "$DELETED_FORMULAE" ]] || args+=("--deleted-formulae=$DELETED_FORMULAE")
+          fi
+          brew "${args[@]}"
 
       - name: Reject ignored test-bot failures
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' || steps.pushed-formulae.outputs.changed == 'true'
         run: |
           test -f steps_output.txt
           ! grep -Eq 'failed steps? ignored' steps_output.txt

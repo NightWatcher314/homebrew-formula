@@ -5,25 +5,25 @@ class Sovi < Formula
 
   on_macos do
     on_arm do
-      url "https://github.com/NightWatcher314/sovi/releases/download/v0.4.0/sovi_Darwin_arm64.tar.gz"
-      sha256 "57f64c298d8510afed45dea3bbb13d1015525d506e57af0ae06665bdc746f4e1"
+      url "https://github.com/NightWatcher314/sovi/releases/download/v0.5.0/sovi_Darwin_arm64.tar.gz"
+      sha256 "302d5a3f888d95dcd3ebcded0195028e1eaa2a638f62ebc373ff8a8b414442d5"
     end
 
     on_intel do
-      url "https://github.com/NightWatcher314/sovi/releases/download/v0.4.0/sovi_Darwin_x86_64.tar.gz"
-      sha256 "207668d154fe5c82f610f8cb68b1fc6f491151ee0705b2471d560dad4a9f5cb0"
+      url "https://github.com/NightWatcher314/sovi/releases/download/v0.5.0/sovi_Darwin_x86_64.tar.gz"
+      sha256 "f4255e0bc317f0ab496b3217010de0801e33c4ee1a0bd9f2c0342ac306213e68"
     end
   end
 
   on_linux do
     on_arm do
-      url "https://github.com/NightWatcher314/sovi/releases/download/v0.4.0/sovi_Linux_arm64.tar.gz"
-      sha256 "e8e0786da08685a26a97faa8f8d75e813fb1602eacea4d5d0abdb557488500cf"
+      url "https://github.com/NightWatcher314/sovi/releases/download/v0.5.0/sovi_Linux_arm64.tar.gz"
+      sha256 "8af1cdf5d5cc968a686db404272385c1e0c155694533e5c83613cd59b6105f07"
     end
 
     on_intel do
-      url "https://github.com/NightWatcher314/sovi/releases/download/v0.4.0/sovi_Linux_x86_64.tar.gz"
-      sha256 "7d3e97563c0939b438e5f45583b41eb5b237449cc088282f92f29aa22b27b63f"
+      url "https://github.com/NightWatcher314/sovi/releases/download/v0.5.0/sovi_Linux_x86_64.tar.gz"
+      sha256 "541f303af7eb7458eefdef22489ba5b9f2b63ca3e47155611ac9b3bba87eaa10"
     end
   end
 

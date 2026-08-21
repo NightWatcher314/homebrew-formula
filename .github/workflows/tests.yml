@@ -71,6 +71,7 @@ jobs:
           ADDED_FORMULAE: ${{ steps.pushed-formulae.outputs.added_formulae }}
           DELETED_FORMULAE: ${{ steps.pushed-formulae.outputs.deleted_formulae }}
           TESTING_FORMULAE: ${{ steps.pushed-formulae.outputs.testing_formulae }}
+        shell: bash
         run: |
           args=(test-bot --only-formulae)
           if [[ "$GITHUB_EVENT_NAME" == "push" ]]; then

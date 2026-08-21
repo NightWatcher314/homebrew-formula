@@ -91,6 +91,7 @@ class ZoteroPdf2zhNext < Formula
 
   service do
     run [opt_bin/"zotero-pdf2zh-next", "--host", "127.0.0.1", "--port", "8890", "--log-level", "INFO"]
+    working_dir var/"lib/zotero-pdf2zh-next"
     keep_alive true
     log_path var/"log/zotero-pdf2zh-next.log"
     error_log_path var/"log/zotero-pdf2zh-next.log"

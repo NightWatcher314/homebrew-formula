@@ -7,10 +7,10 @@ class ZoteroPdf2zhNext < Formula
   license "AGPL-3.0-or-later"
 
   bottle do
-    root_url "https://github.com/NightWatcher314/homebrew-formula/releases/download/zotero-pdf2zh-next-5.3.0"
-    sha256 arm64_tahoe:  "bb1a250b5d617621215a495e2f50b84e9749c4cb949494891e13558515be27cc"
-    sha256 arm64_sonoma: "5e7164d9cf3e71c560c2c3273ce73773a29e538bb19dfb9b43207d2a6348ff13"
-    sha256 x86_64_linux: "f11c92be4114c3907ca2c0bfe44905d9ebaabaa132b5adffeecadf3637340c9a"
+    root_url "https://github.com/NightWatcher314/homebrew-formula/releases/download/zotero-pdf2zh-next-5.3.1"
+    sha256 arm64_tahoe:  "15d7236a04de88381aa2f94e9bb0724bbcab940c7a062b0a8c9169a7b73beb09"
+    sha256 arm64_sonoma: "60eb0ef779579cf6fffd95d04440449ef5fa733569ee7ab290dcdcbf7ddc9295"
+    sha256 x86_64_linux: "ae4c877a24fbf59e5fd357d84063a62ede46f0eb19093024709e27b6d3b23554"
   end
 
   depends_on "uv" => :build

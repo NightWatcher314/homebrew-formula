@@ -7,7 +7,8 @@ import unittest
 
 SCRIPT = Path(__file__).with_name("test-matrix.sh").resolve()
 FULL = ["macos-14", "macos-15-intel", "macos-26", "ubuntu-latest"]
-REDUCED = ["macos-26", "ubuntu-latest"]
+TIER1 = ["macos-15", "xcode-27", "macos-26", "ubuntu-latest"]
+MIXED = FULL[:2] + TIER1
 PDF = "Formula/zotero-pdf2zh-next.rb"
 OTHER = "Formula/other.rb"
 
@@ -46,6 +47,10 @@ class MatrixTest(unittest.TestCase):
         )
         matrix = json.loads(output.removeprefix("matrix="))["include"]
         self.assertEqual(matrix[-1]["container"]["image"], "ghcr.io/homebrew/brew:main")
+        for row in matrix:
+            if row["os"] == "xcode-27":
+                self.assertEqual(row["macos"], "27")
+                self.assertEqual(row["arch"], "arm64")
         return [row["os"] for row in matrix]
 
     def test_pdf_only_push_and_pr(self):
@@ -54,7 +59,7 @@ class MatrixTest(unittest.TestCase):
         self.commit()
         for event in ("push", "pull_request"):
             with self.subTest(event=event):
-                self.assertEqual(self.matrix(event), REDUCED)
+                self.assertEqual(self.matrix(event), TIER1)
 
     def test_other_and_mixed_formulae(self):
         self.write(OTHER, "updated\n")
@@ -62,7 +67,7 @@ class MatrixTest(unittest.TestCase):
         self.assertEqual(self.matrix(), FULL)
         self.write(PDF, "updated\n")
         self.commit()
-        self.assertEqual(self.matrix(), FULL)
+        self.assertEqual(self.matrix(), MIXED)
 
     def test_no_formula_change(self):
         self.write("README.md")
@@ -72,24 +77,27 @@ class MatrixTest(unittest.TestCase):
     def test_deleted_pdf(self):
         (self.root / PDF).unlink()
         self.commit()
-        self.assertEqual(self.matrix(), REDUCED)
+        self.assertEqual(self.matrix(), TIER1)
 
     def test_deleted_other_with_pdf_change(self):
         (self.root / OTHER).unlink()
         self.write(PDF, "updated\n")
         self.commit()
-        self.assertEqual(self.matrix(), FULL)
+        self.assertEqual(self.matrix(), MIXED)
+
+    def test_manual_validation_covers_tier1_without_formula_changes(self):
+        self.assertEqual(self.matrix("workflow_dispatch"), TIER1)
 
     def test_rename_counts_old_and_new_path(self):
         (self.root / PDF).rename(self.root / "Formula/renamed.rb")
         self.commit()
-        self.assertEqual(self.matrix(), FULL)
+        self.assertEqual(self.matrix(), MIXED)
 
     def test_initial_push(self):
-        self.assertEqual(self.matrix(before="0" * 40), FULL)
+        self.assertEqual(self.matrix(before="0" * 40), MIXED)
         (self.root / OTHER).unlink()
         self.commit()
-        self.assertEqual(self.matrix(before="0" * 40), REDUCED)
+        self.assertEqual(self.matrix(before="0" * 40), TIER1)
 
     def test_pr_ignores_changes_only_on_base_branch(self):
         self.write(OTHER, "base advanced\n")
@@ -97,13 +105,13 @@ class MatrixTest(unittest.TestCase):
         self.git("checkout", "--detach", self.base)
         self.write(PDF, "feature\n")
         head = self.commit()
-        self.assertEqual(self.matrix("pull_request", advanced_base, head), REDUCED)
+        self.assertEqual(self.matrix("pull_request", advanced_base, head), TIER1)
 
     def test_nested_other_formula(self):
         self.write("Formula/n/nested.rb")
         self.write(PDF, "updated\n")
         self.commit()
-        self.assertEqual(self.matrix(), FULL)
+        self.assertEqual(self.matrix(), MIXED)
 
 
 if __name__ == "__main__":

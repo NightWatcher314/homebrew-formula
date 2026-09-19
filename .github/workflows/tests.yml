@@ -5,6 +5,7 @@ on:
     branches:
       - main
   pull_request:
+  workflow_dispatch:
 
 jobs:
   select-matrix:
@@ -23,13 +24,14 @@ jobs:
         id: matrix
         env:
           EVENT: ${{ github.event_name }}
-          BEFORE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          BEFORE: ${{ github.event.pull_request.base.sha || github.event.before || github.sha }}
           AFTER: ${{ github.event.pull_request.head.sha || github.sha }}
         run: .github/scripts/test-matrix.sh "$EVENT" "$BEFORE" "$AFTER" >> "$GITHUB_OUTPUT"
 
   test-bot:
     needs: select-matrix
     strategy:
+      fail-fast: false
       matrix: ${{ fromJSON(needs.select-matrix.outputs.matrix) }}
     runs-on: ${{ matrix.os }}
     container: ${{ fromJSON(toJSON(matrix.container)) }}
@@ -55,6 +57,12 @@ jobs:
       - name: Verify runner architecture
         run: test "$(uname -m)" = "${{ matrix.arch }}"
 
+      - name: Verify macOS version
+        if: matrix.macos != ''
+        env:
+          EXPECTED_MACOS: ${{ matrix.macos }}
+        run: test "$(sw_vers -productVersion | cut -d. -f1)" = "$EXPECTED_MACOS"
+
       - run: brew test-bot --only-cleanup-before
 
       - run: brew test-bot --only-setup
@@ -74,7 +82,7 @@ jobs:
             >> "$GITHUB_OUTPUT"
 
       - name: Test changed formulae
-        if: github.event_name == 'pull_request' || steps.pushed-formulae.outputs.changed == 'true'
+        if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' || steps.pushed-formulae.outputs.changed == 'true'
         env:
           ADDED_FORMULAE: ${{ steps.pushed-formulae.outputs.added_formulae }}
           DELETED_FORMULAE: ${{ steps.pushed-formulae.outputs.deleted_formulae }}
@@ -86,17 +94,29 @@ jobs:
             [[ -z "$TESTING_FORMULAE" ]] || args+=("--testing-formulae=$TESTING_FORMULAE")
             [[ -z "$ADDED_FORMULAE" ]] || args+=("--added-formulae=$ADDED_FORMULAE")
             [[ -z "$DELETED_FORMULAE" ]] || args+=("--deleted-formulae=$DELETED_FORMULAE")
+          elif [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            args+=(--testing-formulae=nightwatcher314/formula/zotero-pdf2zh-next)
           fi
           brew "${args[@]}"
 
       - name: Reject ignored test-bot failures
-        if: github.event_name == 'pull_request' || steps.pushed-formulae.outputs.changed == 'true'
+        if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' || steps.pushed-formulae.outputs.changed == 'true'
         run: |
           test -f steps_output.txt
           ! grep -Eq 'failed steps? ignored' steps_output.txt
 
+      - name: Require PDF2Zh bottle after manual validation
+        if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        run: |
+          shopt -s nullglob
+          bottles=(zotero-pdf2zh-next--*.bottle*.tar.gz)
+          metadata=(zotero-pdf2zh-next--*.bottle.json)
+          test "${#bottles[@]}" -gt 0
+          test "${#metadata[@]}" -gt 0
+
       - name: Upload bottles as artifact
-        if: always() && github.event_name == 'pull_request'
+        if: always() && (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: bottles_${{ matrix.os }}

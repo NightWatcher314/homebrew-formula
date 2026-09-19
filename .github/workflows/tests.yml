@@ -42,7 +42,6 @@ jobs:
             arch: arm64
             macos: '27'
     runs-on: ${{ matrix.os }}
-    container: ${{ fromJSON(toJSON(matrix.container)) }}
     permissions:
       actions: read
       checks: read

@@ -7,22 +7,30 @@ on:
   pull_request:
 
 jobs:
+  select-matrix:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Test matrix selection
+        run: python3 -m unittest discover -s .github/scripts -p 'test_matrix_test.py'
+      - name: Select formula platforms
+        id: matrix
+        env:
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          AFTER: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: .github/scripts/test-matrix.sh "$EVENT" "$BEFORE" "$AFTER" >> "$GITHUB_OUTPUT"
+
   test-bot:
+    needs: select-matrix
     strategy:
-      matrix:
-        include:
-          # GitHub retires the macos-14 ARM runner on 2026-11-02.
-          - os: macos-14
-            arch: arm64
-          - os: macos-15-intel
-            arch: x86_64
-          - os: macos-26
-            arch: arm64
-          - os: ubuntu-latest
-            arch: x86_64
-            container:
-              image: ghcr.io/homebrew/brew:main
-              options: --privileged
+      matrix: ${{ fromJSON(needs.select-matrix.outputs.matrix) }}
     runs-on: ${{ matrix.os }}
     container: ${{ fromJSON(toJSON(matrix.container)) }}
     permissions:

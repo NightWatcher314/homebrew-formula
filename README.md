@@ -21,4 +21,6 @@ brew tap NightWatcher314/homebrew-formula
 - [zotero-pdf2zh](https://github.com/guaguastandup/zotero-pdf2zh) — 当前版本 <!-- formula-version:zotero-pdf2zh --> v4.1.7；Zotero PDF → ZH 本地服务器旧版配方（Python，安装期用 uv 创建固定 venv）
 - [verible](https://github.com/chipsalliance/verible) — SystemVerilog formatter/linter/language server（二进制包，支持 Linux x86_64/arm64 与 macOS arm64）
 
-`dockgectl`、`npmctl`、`zotero-pdf2zh-next` 当前提供 macOS Apple Silicon（Sonoma、Tahoe）和 Linux x86_64 bottle。其他平台回退到源码构建：使用公开 PyPI 锁文件创建固定 venv，运行时直接执行 `libexec/venv` 里的入口脚本，不读取用户的 uv 全局镜像配置。
+`dockgectl`、`npmctl` 提供 macOS Apple Silicon（Sonoma、Tahoe）和 Linux x86_64 bottle；`zotero-pdf2zh-next` 后续发行仅构建 macOS Tahoe ARM64 和 Linux x86_64 bottle，保留已有历史资产。其他平台回退到源码构建：使用公开 PyPI 锁文件创建固定 venv，运行时直接执行 `libexec/venv` 里的入口脚本，不读取用户的 uv 全局镜像配置。
+
+CI 在启动 Homebrew runner 前按变更选择平台：PR 与合并基点比较，push 比较完整 before/after 范围。仅变更 `zotero-pdf2zh-next` 配方时使用上述两个平台；其他配方、混合变更和无配方变更保留原四平台检查。配方删除也计入选择，重命名按删除加新增处理。离线验证：`python3 -m unittest discover -s .github/scripts -p "test_matrix_test.py"`。

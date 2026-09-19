@@ -32,7 +32,15 @@ jobs:
     needs: select-matrix
     strategy:
       fail-fast: false
-      matrix: ${{ fromJSON(needs.select-matrix.outputs.matrix) }}
+      # One-time backfill: preserve the existing 5.4.0 bottles on other platforms.
+      matrix:
+        include:
+          - os: macos-15
+            arch: arm64
+            macos: '15'
+          - os: xcode-27
+            arch: arm64
+            macos: '27'
     runs-on: ${{ matrix.os }}
     container: ${{ fromJSON(toJSON(matrix.container)) }}
     permissions:
@@ -95,7 +103,7 @@ jobs:
             [[ -z "$ADDED_FORMULAE" ]] || args+=("--added-formulae=$ADDED_FORMULAE")
             [[ -z "$DELETED_FORMULAE" ]] || args+=("--deleted-formulae=$DELETED_FORMULAE")
           elif [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
-            args+=(--testing-formulae=nightwatcher314/formula/zotero-pdf2zh-next)
+            args+=(--keep-old --testing-formulae=nightwatcher314/formula/zotero-pdf2zh-next)
           fi
           brew "${args[@]}"
 

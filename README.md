@@ -25,7 +25,10 @@ brew tap NightWatcher314/homebrew-formula
 ### yabai 发布与升级
 
 `yabai` 配方从自己的 fork release 安装预编译包，不再应用独立的 RunLoop 补丁。
-v7.1.30 对应源码 `ce962949253f741518bde442ebfd54096d5f0984`，已包含上游 PR #2。
+v7.1.31 对应源码 `8afe280`，基于已包含上游 PR #2 的 v7.1.30，恢复 macOS 27.0 的
+三个 scripting-addition 接口；27.1/27.2 保持禁用，插件版本为 2.1.36。
+在 27.0 (26A428) 上，能力握手为 `0x7f`；临时桌面重排、普通跨 App 激活、插件内
+同 App 两窗口聚焦往返通过，原布局和聚焦设置已还原。跨屏搬整个桌面尚未实测。
 本包由 Apple clang 21.0.0 在 macOS 27.0 上构建，包含 `x86_64` 和 `arm64`；
 没有 Apple Developer ID 签名或公证，不继承上游发布二进制的签名状态。
 

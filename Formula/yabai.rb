@@ -1,8 +1,8 @@
 class Yabai < Formula
   desc "Tiling window manager for macOS based on binary space partitioning"
   homepage "https://github.com/NightWatcher314/yabai"
-  url "https://github.com/NightWatcher314/yabai/releases/download/v7.1.30/yabai-v7.1.30.tar.gz"
-  sha256 "0f6459d612a8afc136a301f491da329ce454fe8b44b5137b9fe98584200bed38"
+  url "https://github.com/NightWatcher314/yabai/releases/download/v7.1.31/yabai-v7.1.31.tar.gz"
+  sha256 "a9d5de428e869f96e79b86a896d9f89742ca245e452648e684428c7cdd9ce793"
   license "MIT"
 
   depends_on :macos

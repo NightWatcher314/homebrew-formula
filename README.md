@@ -51,6 +51,14 @@ brew upgrade nightwatcher314/formula/yabai
 该步骤可能重启 Dock。最终检查辅助功能权限、插件状态、真实窗口移动及多屏 Space 切换。
 权限失效需在系统设置中重新授权；不能只凭 `--version` 宣称升级完成。
 
+若辅助功能授权的是 Cellar 内的实际路径，LaunchAgent 的 `ProgramArguments[0]`
+也必须使用该路径。Horizon 已验证 v7.1.30 的
+`/opt/homebrew/Cellar/yabai/7.1.30/bin/yabai` 可启动；旧的 `/opt/homebrew/bin/yabai`
+授权仍保存旧版 ad-hoc 签名要求，不能自动用于新版。后续升级时，先授权新版本的实际
+路径，停止服务，将 `~/Library/LaunchAgents/com.asmvik.yabai.plist` 的启动路径更新为
+`realpath "$(brew --prefix nightwatcher314/formula/yabai)/bin/yabai"` 的结果，再启动服务。
+删除旧权限时按路径区分同名条目，保留正在运行版本的授权。
+
 `dockgectl`、`npmctl` 提供 macOS Apple Silicon（Sonoma、Tahoe）和 Linux x86_64 bottle；`zotero-pdf2zh-next` 的构建目标覆盖 Homebrew 当前 macOS Tier 1：Apple Silicon Sequoia 15、Tahoe 26、Golden Gate 27，以及 Linux x86_64，保留已有历史资产。其他平台回退到源码构建：使用公开 PyPI 锁文件创建固定 venv，运行时直接执行 `libexec/venv` 里的入口脚本，不读取用户的 uv 全局镜像配置。
 
 CI 在启动 Homebrew runner 前按变更选择平台：PR 与合并基点比较，push 比较完整 before/after 范围。仅变更 `zotero-pdf2zh-next` 配方时使用上述四个目标；混合变更同时保留其他配方的旧平台检查；不涉及 PDF2Zh 的变更保留原矩阵。配方删除也计入选择，重命名按删除加新增处理。离线验证：`python3 -m unittest discover -s .github/scripts -p "test_matrix_test.py"`。

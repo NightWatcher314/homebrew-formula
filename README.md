@@ -25,18 +25,20 @@ brew tap NightWatcher314/homebrew-formula
 ### yabai 发布与升级
 
 `yabai` 配方从自己的 fork release 安装预编译包，不再应用独立的 RunLoop 补丁。
-v7.1.31 对应源码 `8afe280`，基于已包含上游 PR #2 的 v7.1.30，恢复 macOS 27.0 的
+v7.1.32 对应源码 `c547f46`，保留 v7.1.31（`8afe280`）恢复 macOS 27.0 的
 三个 scripting-addition 接口；27.1/27.2 保持禁用，插件版本为 2.1.36。
 在 27.0 (26A428) 上，能力握手为 `0x7f`；临时桌面重排、普通跨 App 激活、插件内
 同 App 两窗口聚焦往返通过，原布局和聚焦设置已还原。跨屏搬整个桌面尚未实测。
-本包由 Apple clang 21.0.0 在 macOS 27.0 上构建，包含 `x86_64` 和 `arm64`；
-没有 Apple Developer ID 签名或公证，不继承上游发布二进制的签名状态。
+本包由 Apple clang 21.0.0 在 macOS 27.0 上构建，包含 `x86_64` 和 `arm64`。
+从 v7.1.32 起使用长期自签 Code Signing 证书和固定 designated requirement，
+签名标识为 `com.asmvik.yabai`，证书 SHA1 为 `E9E284C4A5B5337E77AEEBE7AE9B7A5B9C7BABC0`。
+这不是 Apple Developer ID 签名或 Apple 公证。
 
-发布新版本时：先检查 fork 与上游差异，允许快进时同步分支和对应 tag；在该 tag
-执行 `make install`，再执行 `codesign --force --sign - --options runtime bin/yabai`
-并用 `codesign --verify --strict bin/yabai` 校验。将可执行文件、man page、配置示例、
-许可证和构建来源说明打包为 `archive/` 目录，发布 `yabai-v<version>.tar.gz` 及其
-SHA256 到自己的 fork release，更新配方 URL、版本和 SHA256。已发布资产不原地替换；
+发布新版本时：保留本机钥匙串中的原始 `yabai-cert` 证书及私钥，不重新创建。
+执行 fork 的 `bash scripts/release.sh`，脚本固定证书指纹；缺少原身份时直接停止，
+不会退回 ad-hoc 签名。发布生成的归档和 SHA256，更新配方 URL 与 SHA256。
+公开包已签好，Homebrew 安装时不访问用户钥匙串；私钥不进入 Git、CI 或发布包。
+已发布资产不原地替换；
 同版本重新构建应使用新的 release 标识及 Formula revision。
 
 ```sh
@@ -54,13 +56,11 @@ brew upgrade nightwatcher314/formula/yabai
 该步骤可能重启 Dock。最终检查辅助功能权限、插件状态、真实窗口移动及多屏 Space 切换。
 权限失效需在系统设置中重新授权；不能只凭 `--version` 宣称升级完成。
 
-若辅助功能授权的是 Cellar 内的实际路径，LaunchAgent 的 `ProgramArguments[0]`
-也必须使用该路径。Horizon 已验证 v7.1.30 的
-`/opt/homebrew/Cellar/yabai/7.1.30/bin/yabai` 可启动；旧的 `/opt/homebrew/bin/yabai`
-授权仍保存旧版 ad-hoc 签名要求，不能自动用于新版。后续升级时，先授权新版本的实际
-路径，停止服务，将 `~/Library/LaunchAgents/com.asmvik.yabai.plist` 的启动路径更新为
-`realpath "$(brew --prefix nightwatcher314/formula/yabai)/bin/yabai"` 的结果，再启动服务。
-删除旧权限时按路径区分同名条目，保留正在运行版本的授权。
+长期启动与授权统一使用固定路径 `/opt/homebrew/opt/yabai/bin/yabai`（Intel 使用
+`/usr/local/opt/yabai/bin/yabai`）。LaunchAgent 的 `ProgramArguments[0]` 保持这个路径，
+不要随升级改成带版本号的 Cellar 路径。从旧 ad-hoc 身份迁移需授权一次；以后正常升级
+保留同一证书、签名标识与路径即可继承身份。换证书或系统重置权限可能需要重新授权。
+删除旧权限时按路径区分同名条目；证书指纹、代码签名规则与运行进程都要实际核验。
 
 `dockgectl`、`npmctl` 提供 macOS Apple Silicon（Sonoma、Tahoe）和 Linux x86_64 bottle；`zotero-pdf2zh-next` 的构建目标覆盖 Homebrew 当前 macOS Tier 1：Apple Silicon Sequoia 15、Tahoe 26、Golden Gate 27，以及 Linux x86_64，保留已有历史资产。其他平台回退到源码构建：使用公开 PyPI 锁文件创建固定 venv，运行时直接执行 `libexec/venv` 里的入口脚本，不读取用户的 uv 全局镜像配置。
 

@@ -56,11 +56,15 @@ brew upgrade nightwatcher314/formula/yabai
 该步骤可能重启 Dock。最终检查辅助功能权限、插件状态、真实窗口移动及多屏 Space 切换。
 权限失效需在系统设置中重新授权；不能只凭 `--version` 宣称升级完成。
 
-长期启动与授权统一使用固定路径 `/opt/homebrew/opt/yabai/bin/yabai`（Intel 使用
-`/usr/local/opt/yabai/bin/yabai`）。LaunchAgent 的 `ProgramArguments[0]` 保持这个路径，
-不要随升级改成带版本号的 Cellar 路径。从旧 ad-hoc 身份迁移需授权一次；以后正常升级
-保留同一证书、签名标识与路径即可继承身份。换证书或系统重置权限可能需要重新授权。
-删除旧权限时按路径区分同名条目；证书指纹、代码签名规则与运行进程都要实际核验。
+长期启动与授权统一使用实际文件 `/opt/homebrew/var/yabai/yabai`（Intel 使用
+`/usr/local/var/yabai/yabai`）。配方安装后将已签名二进制复制到这里并原子替换；该路径
+不含版本号，也不是软链接。macOS 会解析软链接，固定 bin/opt 软链接不足以稳定实际授权路径。
+LaunchAgent 的 `ProgramArguments[0]`、重启入口和 sudoers 均使用这个实际文件。
+首次安装用固定实际文件执行 `--install-service` 与 `--start-service`；迁移已有服务时
+更新 LaunchAgent 的路径后再重启。首次迁移需授权一次；后续保持证书、签名标识与实际路径，
+再验证升级权限复用。
+换证书或系统重置权限可能需要重新授权；证书指纹、签名规则与运行进程都要实际核验。
+Homebrew 卸载后该固定副本仍会保留；退役时停止服务并单独删除它。
 
 `dockgectl`、`npmctl` 提供 macOS Apple Silicon（Sonoma、Tahoe）和 Linux x86_64 bottle；`zotero-pdf2zh-next` 的构建目标覆盖 Homebrew 当前 macOS Tier 1：Apple Silicon Sequoia 15、Tahoe 26、Golden Gate 27，以及 Linux x86_64，保留已有历史资产。其他平台回退到源码构建：使用公开 PyPI 锁文件创建固定 venv，运行时直接执行 `libexec/venv` 里的入口脚本，不读取用户的 uv 全局镜像配置。
 

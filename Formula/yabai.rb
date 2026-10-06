@@ -16,7 +16,8 @@ class Yabai < Formula
 
   post_install_steps do
     copy "yabai", "yabai/yabai.new", source_base: :bin, target_base: :var
-    move "yabai/yabai.new", "yabai/yabai", source_base: :var, target_base: :var, overwrite: true
+    run "/bin/mv", args: ["-f", "{{var}}/yabai/yabai.new", "{{var}}/yabai/yabai"],
+                   writable_paths: ["yabai"], writable_base: :var
   end
 
   def caveats

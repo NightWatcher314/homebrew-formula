@@ -18,7 +18,7 @@ brew tap NightWatcher314/homebrew-formula
 - [sovi](https://github.com/NightWatcher314/sovi) — Go + Bubble Tea 编写的 systemd/launchd 服务管理 TUI
 - [sysz](https://github.com/NightWatcher314/sysz) — 统一管理 Linux systemd 与 macOS launchd 服务的 fzf TUI
 - [zotero-pdf2zh-next](https://github.com/NightWatcher314/zotero-pdf2zh-next) — 精简版 Zotero pdf2zh_next 本地服务器（Python，提供 bottle）
-- [zotero-pdf2zh](https://github.com/guaguastandup/zotero-pdf2zh) — 当前版本 <!-- formula-version:zotero-pdf2zh --> v4.1.7；Zotero PDF → ZH 本地服务器旧版配方（Python，安装期用 uv 创建固定 venv）
+- [zotero-pdf2zh](https://github.com/guaguastandup/zotero-pdf2zh) — 当前版本 <!-- formula-version:zotero-pdf2zh --> v4.1.8；Zotero PDF → ZH 本地服务器旧版配方（Python，安装期用 uv 创建固定 venv）
 - [verible](https://github.com/chipsalliance/verible) — SystemVerilog formatter/linter/language server（二进制包，支持 Linux x86_64/arm64 与 macOS arm64）
 - [yabai](https://github.com/NightWatcher314/yabai) — 同步 Christian-SC26/yabai 后自行构建的 macOS 通用二进制，使用 ad-hoc 签名
 
